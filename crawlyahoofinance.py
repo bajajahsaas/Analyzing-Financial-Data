@@ -89,7 +89,7 @@ drive.mount('drive')
 
 #https://finance.yahoo.com/quote/%5EIXIC/components?p=%5EIXIC
 
-items = ['', '/analysis']
+items = ['', '/profile', '/analysis']
 urlPre = 'https://finance.yahoo.com/quote/'
 urlSuf = '?p='
 
@@ -120,44 +120,54 @@ for cmp in cmpList:
     
     item_df = pd.DataFrame()
     
+    
     for df in dataframe_list:
     
-      # Summary (2), Analysis (6)
+      # Summary (2), Analysis (6), Profile (1)
+      
       
       if item is "":
         df = df.transpose()
         item_df = pd.concat([item_df, df], axis = 1, ignore_index = True)
         
         
-        
-      if item == '/analysis':
+      if item == "/analysis": 
         df.set_index(df.columns[0], inplace=True)
         df = df.replace({pd.np.nan: None})
         df = df.unstack().to_frame().sort_index(level=1).T
         df.columns = df.columns.map("_".join)
         item_df = pd.concat([item_df, df], axis = 1)
+        
      
+      if item == "/profile":     
+        column_Names = df.columns
+        columns = []
+        rows = df.shape[0]
+
+        for j in range(1, rows + 1):
+          for i in column_Names:
+            columns.append(str(i) + "_" + str(j))
+
+        columns_series = pd.Series(columns, index  = None)
+        values_series = pd.Series(df.values.flatten(), index = None)
+        values_list = [df.values.flatten()]
+        item_df = pd.DataFrame(values_list, columns = columns)
+        
+      
     
     if item is "":
       new_header = item_df.iloc[0] #grab the first row for the header
-#       print(item_df)
       item_df.columns = new_header #set the header row as the df header
-#       print(item_df)
       item_df = item_df[1:] #take the data less the header row
-#       print(item_df)
-#       print(new_header)
       item_df.reset_index(inplace=True, drop=True)
      
       
-    #print(item_df)
     print(name, item_df.shape[1], 'Columns')
     cmp_df_list.append(item_df)
     
 #     filename = cmp + '_' + name + '.csv'
 #     item_df.to_csv(filename, index = False)
 #     !cp $filename drive/My\ Drive/Isenberg/
-  
-  
   
   cmp_df = pd.DataFrame()
   for df in cmp_df_list:
@@ -227,15 +237,6 @@ for cmp in cmpList:
     item_df = pd.DataFrame()
     
     for df in dataframe_list:
-    
-      # Summary (2), Analysis (6)
-      
-      if item is "":
-        df = df.transpose()
-        item_df = pd.concat([item_df, df], axis = 1, ignore_index = True)
-        
-        
-        
       if item == '/financials':
         df.set_index(df.columns[0], inplace=True)
         df = df.replace({pd.np.nan: None})
@@ -243,18 +244,7 @@ for cmp in cmpList:
         df.columns = df.columns.map("_".join)
         item_df = pd.concat([item_df, df], axis = 1)
      
-    
-    if item is "":
-      new_header = item_df.iloc[0] #grab the first row for the header
-#       print(item_df)
-      item_df.columns = new_header #set the header row as the df header
-#       print(item_df)
-      item_df = item_df[1:] #take the data less the header row
-#       print(item_df)
-#       print(new_header)
-      item_df.reset_index(inplace=True, drop=True)
-     
-      
+   
     #print(item_df)
     print(name, item_df.shape[1], 'Columns')
     cmp_df_list.append(item_df)
@@ -298,11 +288,6 @@ filename = 'MarketWatchData.xlsx'
 final_df.to_excel(filename)
 !cp $filename drive/My\ Drive/Isenberg/
 
-# #listdf = parse_url("https://www.marketwatch.com/investing/stock/aapl/financials")
-# listf = parse_url("https://old.nasdaq.com/symbol/aapl/financials?query=balance-sheet")
-# for df in listdf:
-#   print(df)
-
 def getSummaryData(url):
   response = requests.get(url, verify=False)
   print ("Parsing %s"%(url))
@@ -344,6 +329,6 @@ def getFinanceData(url):
     
 # empty cells, heirarchical cells
 
-# financeUrl = "https://finance.yahoo.com/quote/TSLA/financials?p=TSLA"
-# scrappedData = getFinanceData(financeUrl)
-# print(scrappedData)
+financeUrl = "https://finance.yahoo.com/quote/TSLA/financials?p=TSLA"
+scrappedData = getFinanceData(financeUrl)
+print(scrappedData)
