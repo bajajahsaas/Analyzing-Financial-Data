@@ -19,6 +19,82 @@ import argparse
 from collections import OrderedDict
 import lxml.html as lh
 import pandas as pd
+import urllib3
+
+# Brute force way: not used
+def getSummaryData(url):
+  response = requests.get(url, verify=False)
+  print ("Parsing %s"%(url))
+  sleep(4)
+  parser = html.fromstring(response.text)
+  summary_table = parser.xpath('//div[contains(@data-test,"summary-table")]//tr')
+  summary_data = OrderedDict()
+  try:
+    for table_data in summary_table:
+      raw_table_key = table_data.xpath('.//td[contains(@class,"C($primaryColor)")]//text()')
+      raw_table_value = table_data.xpath('.//td[contains(@class,"Ta(end)")]//text()')
+      table_key = ''.join(raw_table_key).strip()
+      table_value = ''.join(raw_table_value).strip()
+      summary_data.update({table_key:table_value})
+    return summary_data
+  
+  except:
+    print ("Failed to parse json response")
+    return {"error":"Failed to parse json response"}
+
+# for parsing yahoo finance data
+
+def getFinanceData(url):
+  #urllib.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+  response = requests.get(url, verify=False)
+  sleep(4)
+  parser = html.fromstring(response.text)
+  finance_table = parser.xpath('//div[contains(@data-test,"fin-row")]')
+  
+  keys = []
+  values = []
+  
+  columnLen = 0 
+  for table_data in finance_table:
+    raw_table_key = table_data.xpath('.//span[contains(@class,"Va(m)")]//text()')
+    if len(raw_table_key) > 1:
+      continue
+      
+    raw_table_value = table_data.xpath('.//span[not(contains(@class,"Va(m)"))]//text()')
+    
+    # raw_table_key has only single element
+    keys.append(raw_table_key[0])
+    values.append(raw_table_value)
+    columnLen = max(columnLen, len(raw_table_value))
+  
+  columns = []
+  data = []
+  
+  for row in keys:
+    for i in range(1, columnLen + 1):
+      columns.append(row + "_" + str(i))
+      
+
+  
+  for value in values:
+    temp = []
+    if len(value) < columnLen:
+      diff = columnLen - len(value)
+      while diff > 0:
+        temp.append("N/A")
+        diff = diff -1
+      
+    for item in value:
+      temp.append(item)
+    
+    data.extend(temp)
+ 
+  finance_data = pd.DataFrame()
+  
+  columns_series = pd.Series(columns, index  = None)
+  finance_data = pd.DataFrame([data], columns = columns)
+  
+  return finance_data
 
 def parse_url(url, cmp):
   response = requests.get(url)
@@ -82,6 +158,8 @@ def parse_html_table(table, cmp):
 
 cmpList = ['TSLA', 'AAPL', 'NFLX', 'GM', 'F', 'FCAU', 'PCAR', 'MRK', 'PFE', 'JNJ', 'BMY', 'QCOM', 'MSFT' , 'ADBE', 'INTC', 'GOOGL', 'CRM', 'ORCL', 'IBM', 'FB', 'TWTR', 'AMZN', 'SCHW', 'ETFC', 'AMTD',]
 
+# Parsing data from yahoo finance (profile, analysis, summary)
+
 towriteCmpList = []
 
 from google.colab import drive
@@ -95,10 +173,6 @@ urlSuf = '?p='
 
 columns = None
 
-#scrappedData = getSummaryData(summaryUrl)
-# response = requests.get(financeUrl, verify=False)
-# soup = bs.BeautifulSoup(response.text)
-# print(soup.prettify())
 final_df = pd.DataFrame()
 
 for cmp in cmpList:
@@ -113,9 +187,7 @@ for cmp in cmpList:
       name = 'summary'
     else:
       name = item[1:len(item)]
-    
-    print(name, len(dataframe_list), 'tables')
-    
+       
     count = 1
     
     item_df = pd.DataFrame()
@@ -162,7 +234,7 @@ for cmp in cmpList:
       item_df.reset_index(inplace=True, drop=True)
      
       
-    print(name, item_df.shape[1], 'Columns')
+    #print(name, len(dataframe_list), 'tables ', item_df.shape[1], 'Columns')
     cmp_df_list.append(item_df)
     
 #     filename = cmp + '_' + name + '.csv'
@@ -190,7 +262,7 @@ for cmp in cmpList:
   else:
     towriteCmpList.append(cmp)
   
-  #print('intersections: ', cmp_df.columns.difference(final_df.columns).shape, final_df.columns.difference(cmp_df.columns).shape) #should always print 0
+  #print('differences: ', cmp_df.columns.difference(final_df.columns).shape, final_df.columns.difference(cmp_df.columns).shape) #should always print 0
   
   final_df = pd.concat([final_df, cmp_df], ignore_index = True)
 
@@ -201,6 +273,8 @@ print('Final Data: ',final_df.shape)
 filename = 'YahooData.xlsx'
 final_df.to_excel(filename)
 !cp $filename drive/My\ Drive/Isenberg/
+
+# Parsing data from marketwatch (financials)
 
 towriteCmpList = []
 
@@ -229,9 +303,7 @@ for cmp in cmpList:
       name = 'summary'
     else:
       name = item[1:len(item)]
-    
-    print(name, len(dataframe_list), 'tables')
-    
+   
     count = 1
     
     item_df = pd.DataFrame()
@@ -246,7 +318,7 @@ for cmp in cmpList:
      
    
     #print(item_df)
-    print(name, item_df.shape[1], 'Columns')
+    #print(name, len(dataframe_list), 'tables ', item_df.shape[1], 'Columns')
     cmp_df_list.append(item_df)
     
 #     filename = cmp + '_' + name + '.csv'
@@ -276,7 +348,7 @@ for cmp in cmpList:
   else:
     towriteCmpList.append(cmp)
   
-  #print('intersections: ', cmp_df.columns.difference(final_df.columns).shape, final_df.columns.difference(cmp_df.columns).shape) #should always print 0
+  #print('differences: ', cmp_df.columns.difference(final_df.columns).shape, final_df.columns.difference(cmp_df.columns).shape) #should always print 0
   
   final_df = pd.concat([final_df, cmp_df], ignore_index = True)
 
@@ -288,47 +360,143 @@ filename = 'MarketWatchData.xlsx'
 final_df.to_excel(filename)
 !cp $filename drive/My\ Drive/Isenberg/
 
-def getSummaryData(url):
-  response = requests.get(url, verify=False)
-  print ("Parsing %s"%(url))
-  sleep(4)
-  parser = html.fromstring(response.text)
-  summary_table = parser.xpath('//div[contains(@data-test,"summary-table")]//tr')
-  summary_data = OrderedDict()
-  try:
-    for table_data in summary_table:
-      raw_table_key = table_data.xpath('.//td[contains(@class,"C($primaryColor)")]//text()')
-      raw_table_value = table_data.xpath('.//td[contains(@class,"Ta(end)")]//text()')
-      table_key = ''.join(raw_table_key).strip()
-      table_value = ''.join(raw_table_value).strip()
-      summary_data.update({table_key:table_value})
-    return summary_data
+# Parsing data from yahoo (financials)
+
+towriteCmpList = []
+
+from google.colab import drive
+drive.mount('drive')
+
+
+items = ['/financials?p=', '/balance-sheet?p=', '/cash-flow?p=']
+urlPre = 'https://finance.yahoo.com/quote/'
+
+columns = None
+
+
+final_df = pd.DataFrame()
+
+for cmp in cmpList:
+  cmp_df_list = []
+  print('\nCompany: ', cmp)
   
-  except:
-    print ("Failed to parse json response")
-    return {"error":"Failed to parse json response"}
-
-def getFinanceData(url):
-  response = requests.get(url, verify=False)
-  print ("Parsing %s"%(url))
-  sleep(4)
-  parser = html.fromstring(response.text)
-  summary_table = parser.xpath('//div[contains(@data-test,"fin-row")]')
-  print(len(summary_table))
-  summary_data = pd.DataFrame()
-
-  for table_data in summary_table:
-    raw_table_key = table_data.xpath('.//span[contains(@class,"Va(m)")]//text()')
-
-    raw_table_value = table_data.xpath('.//span[not(contains(@class,"Va(m)"))]//text()')
-
-    print('table_key', raw_table_key)
-    print('table_value', raw_table_value)
+  for item in items:
+    url = urlPre + cmp + item + cmp
+    dataframe_list = parse_url(url, cmp)
     
-  return summary_data
     
-# empty cells, heirarchical cells
+    name = item[1:len(item) - 3]
+    
+    count = 1
+    
+    item_df = getFinanceData(url)
+     
+   
+    print(name, len(item_df), 'table ', item_df.shape[1], 'Columns')
+    cmp_df_list.append(item_df)
+    
+#     filename = cmp + '_' + name + '.csv'
+#     item_df.to_csv(filename, index = False)
+#     !cp $filename drive/My\ Drive/Isenberg/
+  
+  
+ 
+  cmp_df = pd.DataFrame()
+  for df in cmp_df_list:
+    cmp_df = pd.concat([cmp_df,df], axis = 1)
+  
+  # Causes problem when company name is "F" and it gets replaced everywhere in the column names. Better to do in parse_url
+  # cmp_df.columns = cmp_df.columns.str.replace(cmp, "cmp")
+  
+  if columns == None:
+    columns = cmp_df.columns.tolist()
+ 
+  #cmp_df.sort_index(axis=1, inplace=True) # not required if string replace done at parsing time
+  
+  if (final_df.shape[0] != 0 and final_df.columns.equals(cmp_df.columns) == False ):
+    # except when final_df is empty. This should return always True. Else column mistmatch (ignore this company)
+    print('Column mismatch for company: ', cmp, ' Ignoring...')
+    continue
+    # MSFT: has current year (2020): typo
+    # ADBE: has different dates
+  else:
+    towriteCmpList.append(cmp)
+  
+  #print('intersections: ', cmp_df.columns.difference(final_df.columns).shape, final_df.columns.difference(cmp_df.columns).shape) #should always print 0
+  
+  final_df = pd.concat([final_df, cmp_df], ignore_index = True)
 
-financeUrl = "https://finance.yahoo.com/quote/TSLA/financials?p=TSLA"
-scrappedData = getFinanceData(financeUrl)
-print(scrappedData)
+
+final_df['company'] = towriteCmpList  
+final_df = final_df.set_index('company')
+print('Final Data: ',final_df.shape)
+
+filename = 'YahooFinances.xlsx'
+final_df.to_excel(filename)
+!cp $filename drive/My\ Drive/Isenberg/
+
+# Testing
+
+towriteCmpList = []
+
+from google.colab import drive
+drive.mount('drive')
+
+
+items = ['/financials?p=', '/balance-sheet?p=', '/cash-flow?p=']
+urlPre = 'https://finance.yahoo.com/quote/'
+
+columns = None
+
+
+final_df = pd.DataFrame()
+
+for cmp in cmpList:
+  cmp_df_list = []
+  print('\nCompany: ', cmp)
+  
+  for item in items:
+    url = urlPre + cmp + item + cmp
+    dataframe_list = parse_url(url, cmp)
+    
+    
+    name = item[1:len(item) - 3]
+    
+    count = 1
+    
+    item_df = getFinanceData(url)
+     
+   
+    print(name, len(item_df), 'table ', item_df.shape[1], 'Columns')
+    cmp_df_list.append(item_df)
+    
+#     filename = cmp + '_' + name + '.csv'
+#     item_df.to_csv(filename, index = False)
+#     !cp $filename drive/My\ Drive/Isenberg/
+  
+  
+ 
+  cmp_df = pd.DataFrame()
+  for df in cmp_df_list:
+    cmp_df = pd.concat([cmp_df,df], axis = 1)
+  
+  # Causes problem when company name is "F" and it gets replaced everywhere in the column names. Better to do in parse_url
+  # cmp_df.columns = cmp_df.columns.str.replace(cmp, "cmp")
+  
+  if columns == None:
+    columns = cmp_df.columns.tolist()
+ 
+  #cmp_df.sort_index(axis=1, inplace=True) # not required if string replace done at parsing time
+  
+  if (final_df.shape[0] != 0 and final_df.columns.equals(cmp_df.columns) == False ):
+    # except when final_df is empty. This should return always True. Else column mistmatch (ignore this company)
+    print('Column mismatch for company: ', cmp, ' Ignoring...')
+    print('differences: ', cmp_df.columns.difference(final_df.columns), final_df.columns.difference(cmp_df.columns)) 
+    continue
+    # MSFT: has current year (2020): typo
+    # ADBE: has different dates
+
+# response = requests.get(financeUrl, verify=False)
+# soup = bs.BeautifulSoup(response.text)
+# print(soup.prettify())
+
