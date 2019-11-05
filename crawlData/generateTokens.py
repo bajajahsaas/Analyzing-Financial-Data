@@ -1,5 +1,5 @@
 import pandas as pd
 
-df = pd.read_csv("TestData.1.csv")
+df = pd.read_csv("YahooFinances.csv")
 
-print(df['TIC'].tolist())
+print(df['company'].tolist())
