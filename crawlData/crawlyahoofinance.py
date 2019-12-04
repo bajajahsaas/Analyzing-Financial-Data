@@ -43,7 +43,7 @@ data = pd.DataFrame.from_records(rows, index = None)
 cmpList = data[data.columns[0]].astype(str).values.tolist()
 print('Number of tickets', len(cmpList))
 
-sleep_val = 2
+sleep_val = 3
 
 # Brute force way: not used
 def getSummaryData(url):
@@ -80,6 +80,7 @@ def getFinanceData(url, name):
   try:
     #urllib.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     response = requests.get(url, verify=False)
+    # response = http.request('GET', url)
     sleep(sleep_val)
     parser = html.fromstring(response.text)
     finance_table = parser.xpath('//div[contains(@data-test,"fin-row")]')
@@ -270,14 +271,14 @@ def getProfileData(url):
   except:
     return pd.DataFrame()
 
-def writeYahooData():
+def writeYahooSummary():
   # Parsing data from yahoo finance (profile, analysis, summary)
-
+  print("\nWriting Yahoo Summary")
   towriteCmpList = []
-
+  ignored_cmp = []
   #https://finance.yahoo.com/quote/%5EIXIC/components?p=%5EIXIC
 
-  items = ['', '/profile', '/analysis']
+  items = ['']
   urlPre = 'https://finance.yahoo.com/quote/'
   urlSuf = '?p='
 
@@ -380,6 +381,7 @@ def writeYahooData():
       # except when final_df is empty. This should return always True. Else column mistmatch (ignore this company)
       print('Column mismatch for company: ', cmp, ' Ignoring...')
       #print('differences: ', cmp_df.columns.difference(final_df.columns), final_df.columns.difference(cmp_df.columns)) #should always print 0
+      ignored_cmp.append(cmp)
       continue
       # MSFT: has current year (2020): typo
       # ADBE: has different dates
@@ -394,15 +396,291 @@ def writeYahooData():
   final_df = final_df.set_index('company')
   print('Final Data: ',final_df.shape)
 
-  filename = 'YahooDataLarge.xlsx'
+  filename = 'YahooDataSummaryLarge.xlsx'
   final_df.to_excel(filename)
   !cp $filename drive/My\ Drive/Research/AB/
 
+  if len(ignored_cmp) > 0:
+    ignored_csv = pd.DataFrame(ignored_cmp)
+    ignored_filename = 'YahooDataSummaryLarge_ignoredcmp.xlsx'
+    ignored_csv.to_excel(ignored_filename, index="False")
+    !cp $ignored_filename drive/My\ Drive/Research/AB/
+
+def writeYahooProfile():
+  # Parsing data from yahoo finance (profile, analysis, summary)
+  print("\nWriting Yahoo Profile")
+  towriteCmpList = []
+  ignored_cmp = []
+  #https://finance.yahoo.com/quote/%5EIXIC/components?p=%5EIXIC
+
+  items = ['/profile']
+  urlPre = 'https://finance.yahoo.com/quote/'
+  urlSuf = '?p='
+
+  columns = None
+
+  final_df = pd.DataFrame()
+
+  for cmp in cmpList:
+    cmp_df_list = []
+    print('\nCompany: ', cmp)
+    
+    for item in items:
+      url = urlPre + cmp + item + urlSuf + cmp
+      dataframe_list = parse_url(url, cmp)
+      
+      if item is '':
+        name = 'summary'
+      else:
+        name = item[1:len(item)]
+        
+      count = 1
+      
+      item_df = pd.DataFrame()
+      
+      
+      for df in dataframe_list:
+      
+        # Summary (2), Analysis (6), Profile (1)
+        
+        
+        if item is "":
+          df = df.transpose()
+          item_df = pd.concat([item_df, df], axis = 1, ignore_index = True)
+          
+          
+        if item == "/analysis": 
+          cols_total = df.shape[1]
+          column_heads = []
+          for head in range(1, cols_total + 1):
+            column_heads.append(str(head))
+          
+          df.columns = column_heads
+          
+          df.set_index(df.columns[0], inplace=True)
+          df = df.replace({pd.np.nan: None})
+          df = df.unstack().to_frame().sort_index(level=1).T
+          
+          df.columns = df.columns.map("_".join)
+          
+          item_df = pd.concat([item_df, df], axis = 1)
+          
+      
+        if item == "/profile":     
+          column_Names = df.columns
+          columns = []
+          rows = df.shape[0]
+
+          for j in range(1, rows + 1):
+            for i in column_Names:
+              columns.append(str(i) + "_" + str(j))
+
+          columns_series = pd.Series(columns, index  = None)
+          values_series = pd.Series(df.values.flatten(), index = None)
+          values_list = [df.values.flatten()]
+          item_df = pd.DataFrame(values_list, columns = columns)
+
+      if item is "":
+        new_header = item_df.iloc[0] #grab the first row for the header
+        item_df.columns = new_header #set the header row as the df header
+        item_df = item_df[1:] #take the data less the header row
+        item_df.reset_index(inplace=True, drop=True)
+      
+      
+      #print(name, len(dataframe_list), 'tables ', item_df.shape[1], 'Columns')
+      cmp_df_list.append(item_df)
+      
+  #     filename = cmp + '_' + name + '.csv'
+  #     item_df.to_csv(filename, index = False)
+  #     !cp $filename drive/My\ Drive/Research/AB/
+    
+    
+    # Non tabular Profile 
+    profile_url = urlPre + cmp + "/profile" + urlSuf + cmp
+    profile_data = getProfileData(profile_url)
+    cmp_df_list.append(profile_data)
+    
+    cmp_df = pd.DataFrame()
+    for df in cmp_df_list:
+      cmp_df = pd.concat([cmp_df,df], axis = 1)
+    
+    # Causes problem when company name is "F" and it gets replaced everywhere in the column names. Better to do in parse_url
+    # cmp_df.columns = cmp_df.columns.str.replace(cmp, "cmp")
+    
+    if columns == None:
+      columns = cmp_df.columns.tolist()
+  
+    #cmp_df.sort_index(axis=1, inplace=True) # not required if string replace done at parsing time
+    
+    if (final_df.shape[0] != 0 and final_df.columns.equals(cmp_df.columns) == False ):
+      # except when final_df is empty. This should return always True. Else column mistmatch (ignore this company)
+      print('Column mismatch for company: ', cmp, ' Ignoring...')
+      #print('differences: ', cmp_df.columns.difference(final_df.columns), final_df.columns.difference(cmp_df.columns)) #should always print 0
+      ignored_cmp.append(cmp)
+      continue
+      # MSFT: has current year (2020): typo
+      # ADBE: has different dates
+    else:
+      towriteCmpList.append(cmp)
+    
+    
+    
+    final_df = pd.concat([final_df, cmp_df], ignore_index = True)
+
+  final_df['company'] = towriteCmpList  
+  final_df = final_df.set_index('company')
+  print('Final Data: ',final_df.shape)
+
+  filename = 'YahooDataProfileLarge.xlsx'
+  final_df.to_excel(filename)
+  !cp $filename drive/My\ Drive/Research/AB/
+
+  if len(ignored_cmp) > 0:
+    ignored_csv = pd.DataFrame(ignored_cmp)
+    ignored_filename = 'YahooDataProfileLarge_ignoredcmp.xlsx'
+    ignored_csv.to_excel(ignored_filename, index="False")
+    !cp $ignored_filename drive/My\ Drive/Research/AB/
+
+def writeYahooAnalysis():
+  # Parsing data from yahoo finance (profile, analysis, summary)
+  print("\nWriting Yahoo Analysis")
+  towriteCmpList = []
+  ignored_cmp = []
+  #https://finance.yahoo.com/quote/%5EIXIC/components?p=%5EIXIC
+
+  items = ['/analysis']
+  urlPre = 'https://finance.yahoo.com/quote/'
+  urlSuf = '?p='
+
+  columns = None
+
+  final_df = pd.DataFrame()
+
+  for cmp in cmpList:
+    cmp_df_list = []
+    print('\nCompany: ', cmp)
+    
+    for item in items:
+      url = urlPre + cmp + item + urlSuf + cmp
+      dataframe_list = parse_url(url, cmp)
+      
+      if item is '':
+        name = 'summary'
+      else:
+        name = item[1:len(item)]
+        
+      count = 1
+      
+      item_df = pd.DataFrame()
+      
+      
+      for df in dataframe_list:
+      
+        # Summary (2), Analysis (6), Profile (1)
+        
+        
+        if item is "":
+          df = df.transpose()
+          item_df = pd.concat([item_df, df], axis = 1, ignore_index = True)
+          
+          
+        if item == "/analysis": 
+          cols_total = df.shape[1]
+          column_heads = []
+          for head in range(1, cols_total + 1):
+            column_heads.append(str(head))
+          
+          df.columns = column_heads
+          
+          df.set_index(df.columns[0], inplace=True)
+          df = df.replace({pd.np.nan: None})
+          df = df.unstack().to_frame().sort_index(level=1).T
+          
+          df.columns = df.columns.map("_".join)
+          
+          item_df = pd.concat([item_df, df], axis = 1)
+          
+      
+        if item == "/profile":     
+          column_Names = df.columns
+          columns = []
+          rows = df.shape[0]
+
+          for j in range(1, rows + 1):
+            for i in column_Names:
+              columns.append(str(i) + "_" + str(j))
+
+          columns_series = pd.Series(columns, index  = None)
+          values_series = pd.Series(df.values.flatten(), index = None)
+          values_list = [df.values.flatten()]
+          item_df = pd.DataFrame(values_list, columns = columns)
+
+      if item is "":
+        new_header = item_df.iloc[0] #grab the first row for the header
+        item_df.columns = new_header #set the header row as the df header
+        item_df = item_df[1:] #take the data less the header row
+        item_df.reset_index(inplace=True, drop=True)
+      
+      
+      #print(name, len(dataframe_list), 'tables ', item_df.shape[1], 'Columns')
+      cmp_df_list.append(item_df)
+      
+  #     filename = cmp + '_' + name + '.csv'
+  #     item_df.to_csv(filename, index = False)
+  #     !cp $filename drive/My\ Drive/Research/AB/
+    
+    
+    # Non tabular Profile 
+    profile_url = urlPre + cmp + "/profile" + urlSuf + cmp
+    profile_data = getProfileData(profile_url)
+    cmp_df_list.append(profile_data)
+    
+    cmp_df = pd.DataFrame()
+    for df in cmp_df_list:
+      cmp_df = pd.concat([cmp_df,df], axis = 1)
+    
+    # Causes problem when company name is "F" and it gets replaced everywhere in the column names. Better to do in parse_url
+    # cmp_df.columns = cmp_df.columns.str.replace(cmp, "cmp")
+    
+    if columns == None:
+      columns = cmp_df.columns.tolist()
+  
+    #cmp_df.sort_index(axis=1, inplace=True) # not required if string replace done at parsing time
+    
+    if (final_df.shape[0] != 0 and final_df.columns.equals(cmp_df.columns) == False ):
+      # except when final_df is empty. This should return always True. Else column mistmatch (ignore this company)
+      print('Column mismatch for company: ', cmp, ' Ignoring...')
+      #print('differences: ', cmp_df.columns.difference(final_df.columns), final_df.columns.difference(cmp_df.columns)) #should always print 0
+      ignored_cmp.append(cmp)
+      continue
+      # MSFT: has current year (2020): typo
+      # ADBE: has different dates
+    else:
+      towriteCmpList.append(cmp)
+    
+    
+    
+    final_df = pd.concat([final_df, cmp_df], ignore_index = True)
+
+  final_df['company'] = towriteCmpList  
+  final_df = final_df.set_index('company')
+  print('Final Data: ',final_df.shape)
+
+  filename = 'YahooDataAnalysisLarge.xlsx'
+  final_df.to_excel(filename)
+  !cp $filename drive/My\ Drive/Research/AB/
+
+  if len(ignored_cmp) > 0:
+    ignored_csv = pd.DataFrame(ignored_cmp)
+    ignored_filename = 'YahooDataAnalysisLarge_ignoredcmp.xlsx'
+    ignored_csv.to_excel(ignored_filename, index="False")
+    !cp $ignored_filename drive/My\ Drive/Research/AB/
+
 # Parsing data from marketwatch (financials)
 def writeMarketWatch():
-
+  print("\nWriting Market Watch Financials")
   towriteCmpList = []
-
+  ignored_cmp = []
   #https://finance.yahoo.com/quote/%5EIXIC/components?p=%5EIXIC
 
   items = ['/financials', '/financials/balance-sheet', '/financials/cash-flow']
@@ -469,6 +747,7 @@ def writeMarketWatch():
       # except when final_df is empty. This should return always True. Else column mistmatch (ignore this company)
       print('Column mismatch for company: ', cmp, ' Ignoring...')
       #print('differences: ', cmp_df.columns.difference(final_df.columns), final_df.columns.difference(cmp_df.columns)) #should always print 0
+      ignored_cmp.append(cmp)
       continue
       # MSFT: has current year (2020): typo
       # ADBE: has different dates
@@ -488,15 +767,17 @@ def writeMarketWatch():
   final_df.to_excel(filename)
   !cp $filename drive/My\ Drive/Research/AB/
 
-  # sh = gc.create('MarketWatch')
-  # sh = gc.open('MarketWatch').sheet1
-
-  # #update the first sheet with df, starting at cell B2. 
-  # sh.set_dataframe(final_df,(0,0))
+  if len(ignored_cmp) > 0:
+    ignored_csv = pd.DataFrame(ignored_cmp)
+    ignored_filename = 'MarketWatchDataLarge_ignoredcmp.xlsx'
+    ignored_csv.to_excel(ignored_filename, index="False")
+    !cp $ignored_filename drive/My\ Drive/Research/AB/
 
 def writeYahooFinancial(): 
   # Parsing data from yahoo (financials)
   towriteCmpList = []
+  ignored_cmp = []
+  finalcolsize = 376
 
   items = ['/financials?p=', '/balance-sheet?p=', '/cash-flow?p=']
   urlPre = 'https://finance.yahoo.com/quote/'
@@ -543,13 +824,19 @@ def writeYahooFinancial():
   
     #cmp_df.sort_index(axis=1, inplace=True) # not required if string replace done at parsing time
     
-    if (final_df.shape[0] != 0 and final_df.columns.equals(cmp_df.columns) == False ):
-      # except when final_df is empty. This should return always True. Else column mistmatch (ignore this company)
+    if final_df.shape[0] == 0:
+       if cmp_df.shape[1] != finalcolsize:
+        # if first cmp, size of columns should match else exact columns match should return always True. Else column mistmatch (ignore this company)
+        print('Column mismatch for company: ', cmp, ' Ignoring...')
+        #print('differences: ', cmp_df.columns.difference(final_df.columns), final_df.columns.difference(cmp_df.columns)) #should always print 0
+        ignored_cmp.append(cmp)
+        continue
+      # APPL, TSLA number of columns in balance sheets are different
+    elif final_df.columns.equals(cmp_df.columns) == False : 
       print('Column mismatch for company: ', cmp, ' Ignoring...')
       #print('differences: ', cmp_df.columns.difference(final_df.columns), final_df.columns.difference(cmp_df.columns)) #should always print 0
+      ignored_cmp.append(cmp)
       continue
-      # APPL, TSLA number of columns in balance sheets are different
-      
     else:
       towriteCmpList.append(cmp)
     
@@ -566,8 +853,16 @@ def writeYahooFinancial():
   final_df.to_excel(filename)
   !cp $filename drive/My\ Drive/Research/AB/
 
+  if len(ignored_cmp) > 0:
+    ignored_csv = pd.DataFrame(ignored_cmp)
+    ignored_filename = 'YahooFinancesLarge_ignoredcmp.xlsx'
+    ignored_csv.to_excel(ignored_filename, index="False")
+    !cp $ignored_filename drive/My\ Drive/Research/AB/
+
 writeYahooFinancial()
-# writeYahooData()
+# writeYahooAnalysis()
+# writeYahooSummary()
+# writeYahooProfile()
 # writeMarketWatch()
 
 '''
@@ -580,3 +875,4 @@ existing = gd.get_as_dataframe(ws)
 updated = existing.append(your_new_data)
 gd.set_with_dataframe(ws, updated)
 '''
+
