@@ -43,7 +43,8 @@ data = pd.DataFrame.from_records(rows, index = None)
 cmpList = data[data.columns[0]].astype(str).values.tolist()
 print('Number of tickets', len(cmpList))
 
-sleep_val = 3
+sleep_val_yahoo = 3
+sleep_val = 1
 
 # Brute force way: not used
 def getSummaryData(url):
@@ -81,7 +82,7 @@ def getFinanceData(url, name):
     #urllib.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     response = requests.get(url, verify=False)
     # response = http.request('GET', url)
-    sleep(sleep_val)
+    sleep(sleep_val_yahoo)
     parser = html.fromstring(response.text)
     finance_table = parser.xpath('//div[contains(@data-test,"fin-row")]')
     
@@ -858,7 +859,7 @@ def writeYahooFinancial():
     ignored_csv.to_excel(ignored_filename, index="False")
     !cp $ignored_filename drive/My\ Drive/Research/AB/
 
-writeYahooFinancial()
+# writeYahooFinancial()
 writeYahooAnalysis()
 writeYahooSummary()
 writeYahooProfile()
