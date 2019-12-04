@@ -103,16 +103,10 @@ def writeDatesYahooFinancial():
     for item in items:
       url = urlPre + cmp + item + cmp
       # dataframe_list = parse_url(url, cmp)
-      
-      
-      name = item[1:len(item) - 3]
-      
-      count = 1
-      
-      item_df = getFinanceData(url, name)
-      
     
-      print(name, item_df.shape)
+      name = item[1:len(item) - 3]
+      count = 1
+      item_df = getFinanceData(url, name)
       cmp_df_list.append(item_df)
       
   #     filename = cmp + '_' + name + '.csv'
