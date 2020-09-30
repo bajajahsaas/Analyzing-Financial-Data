@@ -1,0 +1,74 @@
+SelectBest - Data - r182
+Model :  DecisionTreeRegressor(criterion='mae', max_depth=3)
+(851, 95) (851, 7)
+Important Features:  Index(['GPt-1', 'SGAt-4', 'PBTt-4', 'OCFt-3', 'INVt-2', 'INVt-5',
+       'Sector_Consumer Cyclical'],
+      dtype='object')
+
+Model :  LinearRegression()
+(851, 95) (851, 10)
+Important Features:  Index(['Sector_Basic Materials', 'Sector_Communication Services',
+       'Sector_Consumer Cyclical', 'Sector_Consumer Defensive',
+       'Sector_Energy', 'Sector_Financial Services', 'Sector_Healthcare',
+       'Sector_Industrials', 'Sector_Real Estate', 'Sector_Technology'],
+      dtype='object')
+
+Model :  Ridge(alpha=10)
+(851, 95) (851, 20)
+Important Features:  Index(['S t+1', 'S t', 'St-1', 'St-2', 'St-3', 'St-4', 'St-5', 'VarT',
+       'VarT+1', 'Srpr1', 'Srpr4', 'Sector_Basic Materials',
+       'Sector_Communication Services', 'Sector_Consumer Cyclical',
+       'Sector_Consumer Defensive', 'Sector_Energy',
+       'Sector_Financial Services', 'Sector_Healthcare', 'Sector_Real Estate',
+       'Sector_Technology'],
+      dtype='object')
+
+
+SelectBest - inter - r182
+Model :  DecisionTreeRegressor(criterion='mae', max_depth=3)
+(851, 25) (851, 6)
+Important Features:  Index(['Margin_NM', 'Growth_PBTM', 'Growth_EBITDAM', 'Projections_St+1',
+       'Projections_SGrt+1', 'Sector_Consumer Cyclical'],
+      dtype='object')
+
+Model :  LinearRegression()
+(851, 25) (851, 4)
+Important Features:  Index(['Margin_PBTM', 'Margin_EBITDAM', 'Margin_NM', 'Margin_OCFM'], dtype='object')
+
+Model :  Ridge(alpha=10)
+(851, 25) (851, 11)
+Important Features:  Index(['Margin_GM', 'Margin_PBTM', 'Margin_EBITDAM', 'Margin_NM',
+       'Projections_SGrt+1', 'Sector_Communication Services',
+       'Sector_Consumer Cyclical', 'Sector_Energy', 'Sector_Healthcare',
+       'Sector_Real Estate', 'Sector_Technology'],
+      dtype='object')
+
+
+
+SelectBest - combined - r182
+Model :  DecisionTreeRegressor(criterion='mae', max_depth=3)
+(851, 110) (851, 7)
+Important Features:  Index(['GPt-1', 'SGAt-4', 'PBTt-4', 'Srpr1', 'Margin_EBITM', 'Margin_NM',
+       'Sector_Consumer Cyclical'],
+      dtype='object')
+
+Model :  LinearRegression()
+(851, 110) (851, 10)
+Important Features:  Index(['Sector_Basic Materials', 'Sector_Communication Services',
+       'Sector_Consumer Cyclical', 'Sector_Consumer Defensive',
+       'Sector_Energy', 'Sector_Financial Services', 'Sector_Healthcare',
+       'Sector_Industrials', 'Sector_Real Estate', 'Sector_Technology'],
+      dtype='object')
+
+Model :  Ridge(alpha=10)
+(851, 110) (851, 31)
+Important Features:  Index(['S t+1', 'St-1', 'St-2', 'St-3', 'St-4', 'St-5', 'VarT', 'VarT+1',
+       'Srpr1', 'Srpr4', 'Margin_GM', 'Margin_EBITM', 'Margin_PBTM',
+       'Margin_EBITDAM', 'Margin_NM', 'Margin_OCFM', 'Growth_GM',
+       'Growth_EBITM', 'Growth_PBTM', 'Growth_NM', 'Projections_St+1',
+       'Projections_SGrt+1', 'Sector_Basic Materials',
+       'Sector_Communication Services', 'Sector_Consumer Cyclical',
+       'Sector_Consumer Defensive', 'Sector_Energy',
+       'Sector_Financial Services', 'Sector_Healthcare', 'Sector_Real Estate',
+       'Sector_Technology'],
+      dtype='object')

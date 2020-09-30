@@ -4,6 +4,7 @@ from sklearn.model_selection import KFold
 import time
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.neighbors import KNeighborsRegressor
+from sklearn.linear_model import LinearRegression
 from sklearn import linear_model
 from sklearn.utils import shuffle
 import matplotlib.pyplot as plt
@@ -44,6 +45,23 @@ def get_cross_val_score(model, data_num, hyperparam, train_x, train_y):
     return mean_error, end_time - start_time
 
 
+# fit Linear regression model with cross validation
+
+def linear_regression(data_num, train_x, train_y, test_x):
+    print('Running linear regression for data type:', data_num)
+    
+    model = LinearRegression()
+    this_error, this_time = get_cross_val_score(model, data_num, None, train_x, train_y)
+
+    print("After cross-val for data {0} mean Error: {1:0.4f}".format(data_num, this_error))
+    print("Training model on full data")
+
+    model = LinearRegression()
+    model.fit(train_x, train_y)
+    y_hat = model.predict(test_x)
+    return y_hat, model
+
+
 # fit decision tree regression model with cross validation
 
 def decision_trees(data_num, train_x, train_y, test_x):
@@ -75,7 +93,7 @@ def decision_trees(data_num, train_x, train_y, test_x):
     model = DecisionTreeRegressor(criterion='mae', max_depth=best_depth)
     model.fit(train_x, train_y)
     y_hat = model.predict(test_x)
-    return y_hat
+    return y_hat, model
 
 
 # fit KNN regression model with cross validation
@@ -107,7 +125,7 @@ def k_nearest_neighbors(data_num, train_x, train_y, test_x):
     model = KNeighborsRegressor(n_neighbors=best_k)
     model.fit(train_x, train_y)
     y_hat = model.predict(test_x)
-    return y_hat
+    return y_hat, model
 
 
 # fit ridge and lasso regression models with cross validation
@@ -164,6 +182,6 @@ def ridge_and_lasso(data_num, train_x, train_y, test_x):
 
     model.fit(train_x, train_y)
     y_hat = model.predict(test_x)
-    return y_hat
+    return y_hat, model
 
 
