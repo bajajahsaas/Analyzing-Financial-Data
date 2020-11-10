@@ -40,8 +40,8 @@ def get_cross_val_score(model, data_num, hyperparam, train_x, train_y):
 
     mean_error = np.mean(errors)
     end_time = int(round(time.time() * 1000))
-    print("Mean error for data {0} and hyperparameter {1}: {2:.4f}".format(data_num, hyperparam, mean_error))
-    print("--- %s milli-seconds ---" % (end_time - start_time))
+    # print("Mean error for data {0} and hyperparameter {1}: {2:.4f}".format(data_num, hyperparam, mean_error))
+    # print("--- %s milli-seconds ---" % (end_time - start_time))
     return mean_error, end_time - start_time
 
 
