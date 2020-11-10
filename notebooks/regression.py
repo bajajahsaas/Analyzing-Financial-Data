@@ -81,11 +81,11 @@ def decision_trees(data_num, train_x, train_y, test_x):
 
     print("After cross-val, best depth for data {0} is {1} with mean Error: {2:0.4f}".format(data_num, best_depth,
                                                                                              min_error))
-    fig, ax = plt.subplots()
-    ax.plot(depths, times)
-    ax.set(xlabel='maximum depth', ylabel='time (ms)',
-           title='Run time of decision tree regressor for varying maximum depth (data {0})'.format(data_num))
-    fig.savefig('plots/decisiontree_data{0}.png'.format(data_num))
+    # fig, ax = plt.subplots()
+    # ax.plot(depths, times)
+    # ax.set(xlabel='maximum depth', ylabel='time (ms)',
+    #        title='Run time of decision tree regressor for varying maximum depth (data {0})'.format(data_num))
+    # fig.savefig('plots/decisiontree_data{0}.png'.format(data_num))
     # plt.show()
 
     print("Training model on full data")
@@ -114,11 +114,11 @@ def k_nearest_neighbors(data_num, train_x, train_y, test_x):
 
     print("After cross-val, best neighbors for data {0} is {1} with mean Error: {2:0.4f}".format(data_num, best_k,
                                                                                                  min_error))
-    fig, ax = plt.subplots()
-    ax.plot(neighbors, times)
-    ax.set(xlabel='neighbor count (k) ', ylabel='time (ms)',
-           title='Run time of KNN regressor for varying k (data {0})'.format(data_num))
-    fig.savefig('plots/KNN_data{0}.png'.format(data_num))
+    # fig, ax = plt.subplots()
+    # ax.plot(neighbors, times)
+    # ax.set(xlabel='neighbor count (k) ', ylabel='time (ms)',
+    #        title='Run time of KNN regressor for varying k (data {0})'.format(data_num))
+    # fig.savefig('plots/KNN_data{0}.png'.format(data_num))
     # plt.show()
     print("Training model on full data")
 
@@ -165,13 +165,13 @@ def ridge_and_lasso(data_num, train_x, train_y, test_x):
                                                                                                               best_alpha,
                                                                                                               min_error))
 
-    fig, ax = plt.subplots()
-    ax.plot(alphas, times_r, label='ridge')
-    ax.plot(alphas, times_l, label='lasso')
-    ax.set(xlabel='alpha', ylabel='time (ms)',
-           title='Run time of ridge and lasso regressor for varying alpha (data {0})'.format(data_num))
-    fig.savefig('plots/ridgelasso_data{0}.png'.format(data_num))
-    ax.legend()
+    # fig, ax = plt.subplots()
+    # ax.plot(alphas, times_r, label='ridge')
+    # ax.plot(alphas, times_l, label='lasso')
+    # ax.set(xlabel='alpha', ylabel='time (ms)',
+    #        title='Run time of ridge and lasso regressor for varying alpha (data {0})'.format(data_num))
+    # fig.savefig('plots/ridgelasso_data{0}.png'.format(data_num))
+    # ax.legend()
     # plt.show()
     print("Training model on full data")
 
