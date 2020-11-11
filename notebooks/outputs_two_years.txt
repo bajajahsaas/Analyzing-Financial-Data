@@ -1,0 +1,203 @@
++++++++++++++
+year: 123
++++++++++++++
+(1143, 32) (1143,) (491, 32)
+Running decision tree regressor for data type: A
+After cross-val, best depth for data A is 3 with mean Error: 0.1985
+Training model on full data
+For year 123, MAE on test set: 0.1334
+For year 123, MSE on test set: 0.0601
+Running k-nearest neighbor regressor for data type: A
+After cross-val, best neighbors for data A is 20 with mean Error: 0.1772
+Training model on full data
+For year 123, MAE on test set: 0.1510
+For year 123, MSE on test set: 0.0667
+Running ridge regressors for data type: data
+Running lasso regressors for data type: data
+After cross-val, best method for data data is lasso with alpha = 0.01 and mean Error: 0.1795
+Training model on full data
+For year 123, MAE on test set: 0.1495
+For year 123, MSE on test set: 0.0629
+Running linear regression for data type: A
+After cross-val for data A mean Error: 0.1897
+Training model on full data
+For year 123, MAE on test set: 0.1581
+For year 123, MSE on test set: 0.0707
+
+
++++++++++++++
+year: 234
++++++++++++++
+(1143, 32) (1143,) (491, 32)
+Running decision tree regressor for data type: A
+After cross-val, best depth for data A is 3 with mean Error: 0.1757
+Training model on full data
+For year 234, MAE on test set: 0.1516
+For year 234, MSE on test set: 0.0784
+Running k-nearest neighbor regressor for data type: A
+After cross-val, best neighbors for data A is 25 with mean Error: 0.1803
+Training model on full data
+For year 234, MAE on test set: 0.1706
+For year 234, MSE on test set: 0.0875
+Running ridge regressors for data type: data
+Running lasso regressors for data type: data
+After cross-val, best method for data data is ridge with alpha = 10 and mean Error: 0.1784
+Training model on full data
+For year 234, MAE on test set: 0.1589
+For year 234, MSE on test set: 0.0693
+Running linear regression for data type: A
+After cross-val for data A mean Error: 2644412525.3067
+Training model on full data
+For year 234, MAE on test set: 0.1637
+For year 234, MSE on test set: 0.0713
+
+
++++++++++++++
+year: 345
++++++++++++++
+(1143, 32) (1143,) (491, 32)
+Running decision tree regressor for data type: A
+After cross-val, best depth for data A is 3 with mean Error: 0.2161
+Training model on full data
+For year 345, MAE on test set: 0.1737
+For year 345, MSE on test set: 0.2013
+Running k-nearest neighbor regressor for data type: A
+After cross-val, best neighbors for data A is 20 with mean Error: 0.2140
+Training model on full data
+For year 345, MAE on test set: 0.2134
+For year 345, MSE on test set: 0.2524
+Running ridge regressors for data type: data
+Running lasso regressors for data type: data
+After cross-val, best method for data data is ridge with alpha = 10 and mean Error: 0.2228
+Training model on full data
+For year 345, MAE on test set: 0.1970
+For year 345, MSE on test set: 0.2270
+Running linear regression for data type: A
+After cross-val for data A mean Error: 52240730599.6045
+Training model on full data
+For year 345, MAE on test set: 0.1955
+For year 345, MSE on test set: 0.2263
+
+
++++++++++++++
+year: 0
++++++++++++++
+(3431, 32) (3431,) (1471, 32)
+Running decision tree regressor for data type: A
+After cross-val, best depth for data A is 3 with mean Error: 0.1814
+Training model on full data
+For year 0, MAE on test set: 0.1562
+For year 0, MSE on test set: 0.0848
+Running k-nearest neighbor regressor for data type: A
+After cross-val, best neighbors for data A is 25 with mean Error: 0.1894
+Training model on full data
+For year 0, MAE on test set: 0.1771
+For year 0, MSE on test set: 0.1128
+Running ridge regressors for data type: data
+Running lasso regressors for data type: data
+After cross-val, best method for data data is lasso with alpha = 10 and mean Error: 0.1937
+Training model on full data
+For year 0, MAE on test set: 0.1799
+For year 0, MSE on test set: 0.0890
+Running linear regression for data type: A
+After cross-val for data A mean Error: 775245836.5837
+Training model on full data
+For year 0, MAE on test set: 0.1774
+For year 0, MSE on test set: 0.0890
+
+
+
+
++++++++++++++
+year: 123
++++++++++++++
+
+Model :  DecisionTreeRegressor(criterion='mae', max_depth=3)
+(1143, 32) (1143, 6)
+Important Features:  Index(['EMPLt', 'OCFt-2', 'RDt-2', 'TDt-2', 'St-3', 'Sector_Energy'], dtype='object')
+
+Model :  LinearRegression()
+(1143, 32) (1143, 11)
+Important Features:  Index(['Sector_Basic Materials', 'Sector_Communication Services',
+       'Sector_Consumer Cyclical', 'Sector_Consumer Defensive',
+       'Sector_Energy', 'Sector_Financial Services', 'Sector_Healthcare',
+       'Sector_Industrials', 'Sector_Real Estate', 'Sector_Technology',
+       'Sector_Utilities'],
+      dtype='object')
+
+Model :  Lasso(alpha=0.01)
+(1143, 32) (1143, 1)
+Important Features:  Index(['Sector_Healthcare'], dtype='object')
+
+
++++++++++++++
+year: 234
++++++++++++++
+
+Model :  DecisionTreeRegressor(criterion='mae', max_depth=3)
+(1143, 32) (1143, 7)
+Important Features:  Index(['CPXt-3', 'OCFt-3', 'GPt-4', 'OCFt-4', 'St-4', 'Sector_Energy',
+       'Sector_Healthcare'],
+      dtype='object')
+
+Model :  LinearRegression()
+(1143, 32) (1143, 14)
+Important Features:  Index(['GPt-3', 'OCFt-3', 'PPEt-3', 'RDt-3', 'SGAt-3', 'St-3', 'TDt-3',
+       'GPt-4', 'OCFt-4', 'PPEt-4', 'RDt-4', 'SGAt-4', 'St-4', 'TDt-4'],
+      dtype='object')
+
+Model :  Ridge(alpha=10)
+(1143, 32) (1143, 13)
+Important Features:  Index(['CPXt-3', 'GDWLt-3', 'TDt-3', 'GDWLt-4', 'TDt-4',
+       'Sector_Basic Materials', 'Sector_Consumer Cyclical',
+       'Sector_Consumer Defensive', 'Sector_Energy',
+       'Sector_Financial Services', 'Sector_Healthcare', 'Sector_Industrials',
+       'Sector_Utilities'],
+      dtype='object')
+
+
++++++++++++++
+year: 345
++++++++++++++
+
+Model :  DecisionTreeRegressor(criterion='mae', max_depth=3)
+(1143, 32) (1143, 4)
+Important Features:  Index(['GPt-4', 'St-4', 'GDWLt-5', 'St-5'], dtype='object')
+
+Model :  LinearRegression()
+(1143, 32) (1143, 11)
+Important Features:  Index(['Sector_Basic Materials', 'Sector_Communication Services',
+       'Sector_Consumer Cyclical', 'Sector_Consumer Defensive',
+       'Sector_Energy', 'Sector_Financial Services', 'Sector_Healthcare',
+       'Sector_Industrials', 'Sector_Real Estate', 'Sector_Technology',
+       'Sector_Utilities'],
+      dtype='object')
+
+Model :  Ridge(alpha=10)
+(1143, 32) (1143, 11)
+Important Features:  Index(['TDt-4', 'GDWLt-5', 'SGAt-5', 'St-5', 'TDt-5', 'Sector_Basic Materials',
+       'Sector_Consumer Cyclical', 'Sector_Consumer Defensive',
+       'Sector_Energy', 'Sector_Healthcare', 'Sector_Industrials'],
+      dtype='object')
+
+
++++++++++++++
+year: 0
++++++++++++++
+
+Model :  DecisionTreeRegressor(criterion='mae', max_depth=3)
+(3431, 32) (3431, 3)
+Important Features:  Index(['EMPLt', 'GPt-0', 'St-0'], dtype='object')
+
+Model :  LinearRegression()
+(3431, 32) (3431, 11)
+Important Features:  Index(['Sector_Basic Materials', 'Sector_Communication Services',
+       'Sector_Consumer Cyclical', 'Sector_Consumer Defensive',
+       'Sector_Energy', 'Sector_Financial Services', 'Sector_Healthcare',
+       'Sector_Industrials', 'Sector_Real Estate', 'Sector_Technology',
+       'Sector_Utilities'],
+      dtype='object')
+
+Model :  Lasso(alpha=10)
+(3431, 32) (3431, 0)
+Important Features:  Index([], dtype='object')
